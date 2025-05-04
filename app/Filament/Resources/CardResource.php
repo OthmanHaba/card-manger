@@ -144,6 +144,38 @@ class CardResource extends Resource
             ])
             ->actions([
                 EditAction::make(),
+                Action::make('changeStatus')
+                    ->label('تغيير الحالة')
+                    ->icon('heroicon-o-arrow-path')
+                    ->color('warning')
+                    ->modalHeading('تغيير حالة العمل')
+                    ->form([
+                        Select::make('status')
+                            ->label('الحالة')
+                            ->options(WorkStatusEnum::class)
+                            ->required()
+                    ])
+                    ->action(function (Card $record, array $data): void {
+                        $record->update([
+                            'status' => $data['status'],
+                        ]);
+                    }),
+                Action::make('changeMatchingState')
+                    ->label('تغيير التصنيف')
+                    ->icon('heroicon-o-tag')
+                    ->color('success')
+                    ->modalHeading('تغيير التصنيف')
+                    ->form([
+                        Select::make('matching_state')
+                            ->label('التصنيف')
+                            ->options(CardStatusEnum::class)
+                            ->required()
+                    ])
+                    ->action(function (Card $record, array $data): void {
+                        $record->update([
+                            'matching_state' => $data['matching_state'],
+                        ]);
+                    }),
                 DeleteAction::make(),
             ])
             ->bulkActions([

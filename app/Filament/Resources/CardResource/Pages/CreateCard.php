@@ -67,7 +67,7 @@ class CreateCard extends CreateRecord
                 Action::make('print_small')
                     ->label('نعم، طباعة الفاتورة الصغيرة')
                     ->button()
-                    ->url(route('print.small.invoice', $card), shouldOpenInNewTab: true)
+                    ->url(route('print.small.invoice', $card))
                     ->close(),
 
                 Action::make('cancel_small')
