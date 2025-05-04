@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Card;
-use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class PrintInvoiceController extends Controller

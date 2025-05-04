@@ -28,4 +28,4 @@ class WorkStatusStatCart extends BaseWidget
                 ->color(WorkStatusEnum::COMPLETED->getColor()),
         ];
     }
-} 
+}

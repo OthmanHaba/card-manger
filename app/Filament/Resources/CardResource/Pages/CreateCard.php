@@ -3,9 +3,9 @@
 namespace App\Filament\Resources\CardResource\Pages;
 
 use App\Filament\Resources\CardResource;
-use Filament\Resources\Pages\CreateRecord;
 use Filament\Notifications\Actions\Action;
 use Filament\Notifications\Notification;
+use Filament\Resources\Pages\CreateRecord;
 use Filament\Support\Exceptions\Halt;
 use Illuminate\Database\Eloquent\Model;
 
@@ -54,7 +54,7 @@ class CreateCard extends CreateRecord
             ->persistent()
             ->send();
 
-        throw new Halt();
+        throw new Halt;
     }
 
     protected function askToPrintSmallInvoice(Model $card): void

@@ -5,10 +5,8 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\ActivityLogResource\Pages;
 use Filament\Forms\Components\Card;
 use Filament\Forms\Components\Grid;
-use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Section;
-use Filament\Forms\Components\ViewField;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables\Columns\BadgeColumn;
@@ -17,7 +15,6 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\Models\Activity;
-use Illuminate\Support\Facades\DB;
 
 class ActivityLogResource extends Resource
 {
@@ -49,7 +46,7 @@ class ActivityLogResource extends Resource
                             ->schema([
                                 Placeholder::make('log_name')
                                     ->label('اسم السجل')
-                                    ->content(fn(Activity $record): string => $record->log_name ?? 'افتراضي'),
+                                    ->content(fn (Activity $record): string => trans($record->log_name ?? 'افتراضي')),
 
                                 Placeholder::make('event')
                                     ->label('الحدث')
@@ -60,93 +57,117 @@ class ActivityLogResource extends Resource
                                             'updated' => 'تحديث',
                                             'deleted' => 'حذف',
                                         ];
-                                        
-                                        return $events[$record->event] ?? $record->event;
+
+                                        return trans($events[$record->event] ?? $record->event);
                                     }),
 
                                 Placeholder::make('description')
                                     ->label('الوصف')
-                                    ->content(fn(Activity $record): string => $record->description),
+                                    ->content(function (Activity $record) {
+                                        $description = $record->description;
+
+                                        // Check if description contains JSON parameters
+                                        if (strpos($description, ':') !== false) {
+                                            [$transKey, $jsonParams] = explode(':', $description, 2);
+
+                                            try {
+                                                $params = json_decode($jsonParams, true);
+                                                if (is_array($params)) {
+                                                    // Translate parameter values if needed
+                                                    foreach ($params as $key => $value) {
+                                                        $params[$key] = trans($value);
+                                                    }
+
+                                                    return trans($transKey, $params);
+                                                }
+                                            } catch (\Exception $e) {
+                                                // If JSON parsing fails, fall back to simple translation
+                                            }
+                                        }
+
+                                        // Default translation for simple strings
+                                        return trans($description);
+                                    }),
 
                                 Placeholder::make('subject')
                                     ->label('العنصر المتأثر')
                                     ->content(function (Activity $record) {
-                                        if (!$record->subject) {
-                                            return 'غير متوفر';
+                                        if (! $record->subject) {
+                                            return trans('غير متوفر');
                                         }
-                                        
+
                                         $subject = $record->subject_type;
                                         if (method_exists($record->subject, 'getActivitySubjectDescription')) {
-                                            return $record->subject->getActivitySubjectDescription();
+                                            return trans($record->subject->getActivitySubjectDescription());
                                         }
-                                        
+
                                         // Try to find a name or title attribute
                                         $nameAttributes = ['name', 'title', 'label', 'id'];
                                         foreach ($nameAttributes as $attr) {
                                             if (isset($record->subject->$attr)) {
-                                                return "{$subject}: {$record->subject->$attr}";
+                                                return trans_choice('{0} '.$subject.': {1}', 1, [trans($record->subject->$attr)]);
                                             }
                                         }
-                                        
-                                        return "{$subject} #{$record->subject_id}";
+
+                                        return trans_choice('{0} '.$subject.' #{1}', 1, [$record->subject_id]);
                                     }),
 
                                 Placeholder::make('causer')
                                     ->label('المستخدم')
                                     ->content(function (Activity $record) {
-                                        if (!$record->causer) {
-                                            return 'نظام';
+                                        if (! $record->causer) {
+                                            return trans('نظام');
                                         }
-                                        
+
                                         if (method_exists($record->causer, 'getActivityCauserDescription')) {
-                                            return $record->causer->getActivityCauserDescription();
+                                            return trans($record->causer->getActivityCauserDescription());
                                         }
-                                        
-                                        return $record->causer->name ?? ("مستخدم #{$record->causer_id}");
+
+                                        return trans($record->causer->name ?? trans_choice('مستخدم #{0}', 1, [$record->causer_id]));
                                     }),
 
                                 Placeholder::make('created_at')
                                     ->label('تاريخ النشاط')
-                                    ->content(fn(Activity $record): string => $record->created_at->format('Y-m-d H:i:s')),
+                                    ->content(fn (Activity $record): string => $record->created_at->format('Y-m-d H:i:s')),
                             ]),
 
                         Card::make()
-                            ->visible(fn(Activity $record) => $record->properties?->count() > 0)
+                            ->visible(fn (Activity $record) => $record->properties?->count() > 0)
                             ->schema([
                                 Placeholder::make('properties')
                                     ->label('التفاصيل')
                                     ->content(function (Activity $record) {
                                         if ($record->properties?->count() <= 0) {
-                                            return 'لا توجد بيانات إضافية';
+                                            return trans('لا توجد بيانات إضافية');
                                         }
-                                        
+
                                         // Special handling for status changes
                                         if ($record->properties->has('attributes') && $record->properties->has('old')) {
                                             $properties = $record->properties->toArray();
                                             $old = $properties['old'] ?? [];
                                             $new = $properties['attributes'] ?? [];
-                                            
+
                                             $diff = [];
-                                            
+
                                             // Create a detailed diff showing status changes
                                             foreach ($new as $key => $value) {
-                                                if (!isset($old[$key]) || $old[$key] !== $value) {
+                                                if (! isset($old[$key]) || $old[$key] !== $value) {
                                                     $oldVal = $old[$key] ?? 'غير متوفر';
                                                     $newVal = $value;
-                                                    
+
                                                     // Enhance display for status fields
                                                     if ($key === 'status' || $key === 'matching_state') {
-                                                        $diff[] = "<strong>{$key}:</strong> تغيير من \"{$oldVal}\" إلى \"{$newVal}\"";
+                                                        $diff[] = '<strong>'.trans($key).':</strong> '.trans('تغيير من ":old" إلى ":new"', ['old' => trans($oldVal), 'new' => trans($newVal)]);
                                                     } else {
-                                                        $diff[] = "<strong>{$key}:</strong> {$oldVal} → {$newVal}";
+                                                        $diff[] = '<strong>'.trans($key).':</strong> '.trans($oldVal).' → '.trans($newVal);
                                                     }
                                                 }
                                             }
-                                            
+
                                             // Format the diff as HTML
                                             return implode('<br>', $diff);
                                         }
-                                        
+
                                         // Default display for other property types
                                         return view('filament.resources.activity-log-resource.properties', [
                                             'properties' => $record->properties,
@@ -164,11 +185,35 @@ class ActivityLogResource extends Resource
                 TextColumn::make('description')
                     ->label('الوصف')
                     ->searchable()
-                    ->limit(50),
+                    ->limit(50)
+                    ->formatStateUsing(function ($state) {
+                        // Check if description contains JSON parameters
+                        if (strpos($state, ':') !== false) {
+                            [$transKey, $jsonParams] = explode(':', $state, 2);
+
+                            try {
+                                $params = json_decode($jsonParams, true);
+                                if (is_array($params)) {
+                                    // Translate parameter values if needed
+                                    foreach ($params as $key => $value) {
+                                        $params[$key] = trans($value);
+                                    }
+
+                                    return trans($transKey, $params);
+                                }
+                            } catch (\Exception $e) {
+                                // If JSON parsing fails, fall back to simple translation
+                            }
+                        }
+
+                        // Default translation for simple strings
+                        return trans($state);
+                    }),
 
                 TextColumn::make('log_name')
                     ->label('نوع السجل')
-                    ->searchable(),
+                    ->searchable()
+                    ->formatStateUsing(fn ($state) => trans($state ?: 'افتراضي')),
 
                 BadgeColumn::make('event')
                     ->label('الحدث')
@@ -178,77 +223,80 @@ class ActivityLogResource extends Resource
                         'danger' => 'deleted',
                     ])
                     ->formatStateUsing(function ($state) {
-                        if (!$state) {
+                        if (! $state) {
                             return '';
                         }
-                        
-                        return match ($state) {
+
+                        $label = match ($state) {
                             'created' => 'إنشاء',
                             'updated' => 'تحديث',
                             'deleted' => 'حذف',
                             default => $state,
                         };
+
+                        return trans($label);
                     }),
 
                 TextColumn::make('subject_type')
                     ->label('نوع العنصر')
                     ->formatStateUsing(function ($state) {
-                        if (!$state) {
+                        if (! $state) {
                             return '';
                         }
+
                         return Str::of($state)->afterLast('\\')->headline();
                     })
                     ->searchable(),
-                
+
                 // New column for status changes
                 TextColumn::make('properties')
                     ->label('تغيير الحالة')
                     ->tooltip('يعرض تغييرات الحالة (من/إلى) للبطاقات')
                     ->formatStateUsing(function ($state, $record) {
                         // Add null check for $record
-                        if (!$record) {
+                        if (! $record) {
                             return null;
                         }
-                        
+
                         // Check if this is a status update activity
-                        if ($record->event === 'updated' && 
-                            $state instanceof \Illuminate\Support\Collection && 
-                            $state->has('attributes') && 
+                        if ($record->event === 'updated' &&
+                            $state instanceof \Illuminate\Support\Collection &&
+                            $state->has('attributes') &&
                             $state->has('old')) {
-                            
+
                             $new = $state->get('attributes');
                             $old = $state->get('old');
                             $changes = [];
-                            
+
                             // Check for status changes
-                            if (isset($new['status']) && (!isset($old['status']) || $old['status'] !== $new['status'])) {
+                            if (isset($new['status']) && (! isset($old['status']) || $old['status'] !== $new['status'])) {
                                 $oldValue = $old['status'] ?? 'غير محدد';
                                 $newValue = $new['status'];
                                 $changes[] = "<div class='py-1'>
-                                    <span class='font-medium'>حالة العمل:</span> 
-                                    <span class='text-red-500 dark:text-red-400'>{$oldValue}</span> 
+                                    <span class='font-medium'>".trans('حالة العمل').":</span> 
+                                    <span class='text-red-500 dark:text-red-400'>".trans($oldValue)."</span> 
                                     <span class='mx-1'>→</span> 
-                                    <span class='text-green-500 dark:text-green-400'>{$newValue}</span>
-                                </div>";
+                                    <span class='text-green-500 dark:text-green-400'>".trans($newValue).'</span>
+                                </div>';
                             }
-                            
+
                             // Check for matching_state changes
-                            if (isset($new['matching_state']) && (!isset($old['matching_state']) || $old['matching_state'] !== $new['matching_state'])) {
+                            if (isset($new['matching_state']) && (! isset($old['matching_state']) || $old['matching_state'] !== $new['matching_state'])) {
                                 $oldValue = $old['matching_state'] ?? 'غير محدد';
                                 $newValue = $new['matching_state'];
                                 $changes[] = "<div class='py-1'>
-                                    <span class='font-medium'>حالة المطابقة:</span> 
-                                    <span class='text-red-500 dark:text-red-400'>{$oldValue}</span> 
+                                    <span class='font-medium'>".trans('حالة المطابقة').":</span> 
+                                    <span class='text-red-500 dark:text-red-400'>".trans($oldValue)."</span> 
                                     <span class='mx-1'>→</span> 
-                                    <span class='text-green-500 dark:text-green-400'>{$newValue}</span>
-                                </div>";
+                                    <span class='text-green-500 dark:text-green-400'>".trans($newValue).'</span>
+                                </div>';
                             }
-                            
-                            if (!empty($changes)) {
+
+                            if (! empty($changes)) {
                                 return implode('', $changes);
                             }
                         }
-                        
+
                         return null; // Show nothing for non-status changes
                     })
                     ->html()
@@ -257,19 +305,20 @@ class ActivityLogResource extends Resource
                     ->wrap() // Ensure text wraps properly
                     ->visible(function ($record) {
                         // Add null check
-                        if (!$record) {
+                        if (! $record) {
                             return false;
                         }
-                        
-                        return $record->event === 'updated' && 
-                            $record->properties instanceof \Illuminate\Support\Collection && 
-                            $record->properties->has('attributes') && 
+
+                        return $record->event === 'updated' &&
+                            $record->properties instanceof \Illuminate\Support\Collection &&
+                            $record->properties->has('attributes') &&
                             $record->properties->has('old');
                     }),
 
                 TextColumn::make('causer.name')
                     ->label('بواسطة')
-                    ->placeholder('نظام'),
+                    ->placeholder(trans('نظام'))
+                    ->formatStateUsing(fn ($state) => $state ? trans($state) : trans('نظام')),
 
                 TextColumn::make('created_at')
                     ->label('التاريخ')
@@ -284,15 +333,15 @@ class ActivityLogResource extends Resource
                         return Activity::query()
                             ->distinct('log_name')
                             ->pluck('log_name', 'log_name')
-                            ->mapWithKeys(fn ($value, $key) => [$key => $value ?: 'افتراضي'])
+                            ->mapWithKeys(fn ($value, $key) => [$key => trans($value ?: 'افتراضي')])
                             ->toArray();
                     }),
                 SelectFilter::make('event')
                     ->label('الحدث')
                     ->options([
-                        'created' => 'إنشاء',
-                        'updated' => 'تحديث',
-                        'deleted' => 'حذف',
+                        'created' => trans('إنشاء'),
+                        'updated' => trans('تحديث'),
+                        'deleted' => trans('حذف'),
                     ]),
                 SelectFilter::make('subject_type')
                     ->label('نوع العنصر')
@@ -310,14 +359,14 @@ class ActivityLogResource extends Resource
                     ->query(function ($query) {
                         // A simpler approach that looks for activities with status-related keys in the description
                         return $query->where('event', 'updated')
-                                    ->where(function ($q) {
-                                        $q->where('description', 'like', '%status%')
-                                          ->orWhere('description', 'like', '%matching_state%')
-                                          ->orWhere('description', 'like', '%updated_status%')
-                                          ->orWhere('description', 'like', '%card.updated_work_status%')
-                                          ->orWhere('description', 'like', '%card.updated_matching_state%');
-                                    });
-                    })
+                            ->where(function ($q) {
+                                $q->where('description', 'like', '%status%')
+                                    ->orWhere('description', 'like', '%matching_state%')
+                                    ->orWhere('description', 'like', '%updated_status%')
+                                    ->orWhere('description', 'like', '%card.updated_work_status%')
+                                    ->orWhere('description', 'like', '%card.updated_matching_state%');
+                            });
+                    }),
             ]);
     }
 
@@ -328,4 +377,4 @@ class ActivityLogResource extends Resource
             'view' => Pages\ViewActivityLog::route('/{record}'),
         ];
     }
-} 
+}

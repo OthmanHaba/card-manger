@@ -2,7 +2,7 @@
 
 namespace App\Enums;
 
-use App\Traits\Traits\Enummable;
+use App\Traits\Enummable;
 use Filament\Support\Colors\Color;
 use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasLabel;

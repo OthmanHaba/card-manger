@@ -13,6 +13,7 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\DeleteBulkAction;
@@ -120,12 +121,14 @@ class CardResource extends Resource
                     ->badge()
                     ->label('التصنيف'),
 
+                TextColumn::make('notes')
+                    ->label('ملاحظات'),
 
-                TextColumn::make('notes')->label('ملاحظات'),
+                TextColumn::make('purchase_price')
+                    ->label('سعر الشراء'),
 
-                TextColumn::make('purchase_price')->label('سعر الشراء'),
-
-                TextColumn::make('account_number')->label('رقم الحساب'),
+                TextColumn::make('account_number')
+                    ->label('رقم الحساب'),
 
             ])
             ->groups([

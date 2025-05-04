@@ -14,9 +14,6 @@ class Card extends Model
     use HasFactory;
     use LogsActivity;
 
-    // Make sure fillable includes attributes you want logged on creation/update
-    // protected $fillable = ['name', 'description', 'matching_state', 'status', ...];
-
     protected function casts(): array
     {
         return [
@@ -27,63 +24,55 @@ class Card extends Model
 
     public function getActivitylogOptions(): LogOptions
     {
-        if(app()->runningInConsole()) {
+        if (app()->runningInConsole()) {
             return LogOptions::defaults();
         }
 
         return LogOptions::defaults()
             ->logOnlyDirty() // Only log attributes that have changed
             ->useLogName('card_log')
-            ->setDescriptionForEvent(function(string $eventName) {
+            ->setDescriptionForEvent(function (string $eventName) {
                 if ($eventName === 'updated') {
                     $changes = $this->getChanges();
-                    
-                    // Handle status changes with more details
+
                     if (array_key_exists('status', $changes)) {
                         $oldValue = $this->getOriginal('status');
-                        $newValue = $changes['status'];
-                        
-                        // Convert enum values to readable strings if needed
+                        $newValue = WorkStatusEnum::from($changes['status']);
+
                         if ($oldValue instanceof WorkStatusEnum) {
-                            $oldValue = $oldValue->value;
+                            $oldValue = $oldValue->getLabel();
                         }
                         if ($newValue instanceof WorkStatusEnum) {
-                            $newValue = $newValue->value;
+                            $newValue = $newValue->getLabel();
                         }
-                        
-                        // Log with translation key that can include old and new values
-                        return [
-                            'log.card.updated_work_status', 
-                            [
-                                'old' => $oldValue,
-                                'new' => $newValue
-                            ]
-                        ];
+
+                        return 'log.card.updated_work_status:'.json_encode([
+                            'old' => $oldValue,
+                            'new' => $newValue,
+                        ]);
                     }
-                    
+
                     // Handle matching state changes
                     if (array_key_exists('matching_state', $changes)) {
                         $oldValue = $this->getOriginal('matching_state');
-                        $newValue = $changes['matching_state'];
-                        
+                        $newValue = CardStatusEnum::from($changes['matching_state']);
+
                         // Convert enum values to readable strings if needed
                         if ($oldValue instanceof CardStatusEnum) {
-                            $oldValue = $oldValue->value;
+                            $oldValue = $oldValue->getLabel();
                         }
+
                         if ($newValue instanceof CardStatusEnum) {
-                            $newValue = $newValue->value;
+                            $newValue = $newValue->getLabel();
                         }
-                        
-                        // Log with translation key that can include old and new values
-                        return [
-                            'log.card.updated_matching_state', 
-                            [
-                                'old' => $oldValue,
-                                'new' => $newValue
-                            ]
-                        ];
+
+                        // Store as a string with JSON-encoded parameters
+                        return 'log.card.updated_matching_state:'.json_encode([
+                            'old' => $oldValue,
+                            'new' => $newValue,
+                        ]);
                     }
-                    
+
                     // Check if both status fields were updated
                     if (array_key_exists('status', $changes) && array_key_exists('matching_state', $changes)) {
                         return 'log.card.updated_all_statuses';

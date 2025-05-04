@@ -3,7 +3,6 @@
 namespace App\Filament\Widgets;
 
 use App\Enums\CardStatusEnum;
-use App\Enums\WorkStatusEnum;
 use App\Models\Card;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
