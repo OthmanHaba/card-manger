@@ -84,10 +84,6 @@ class CardResource extends Resource
                                     ->label('رقم الحساب')
                                     ->required(),
 
-                                TextInput::make('phone')
-                                    ->label('رقم الهاتف')
-                                    ->required(),
-
                             ]),
 
                     ]),
