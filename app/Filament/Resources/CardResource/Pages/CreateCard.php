@@ -41,18 +41,11 @@ class CreateCard extends CreateRecord
                     ->button()
                     ->url(route('print.full.invoice', $card), shouldOpenInNewTab: true)
                     ->close(),
-
-                Action::make('ask_small')
-                    ->label('لا، اسأل عن الفاتورة الصغيرة')
-                    ->button()
-                    ->color('gray')
-                    ->action(function () use ($card) {
-                        $this->askToPrintSmallInvoice($card);
-                    })
-                    ->close(),
             ])
             ->persistent()
             ->send();
+
+        $this->askToPrintSmallInvoice($card);
 
         throw new Halt;
     }
@@ -68,12 +61,6 @@ class CreateCard extends CreateRecord
                     ->label('نعم، طباعة الفاتورة الصغيرة')
                     ->button()
                     ->url(route('print.small.invoice', $card))
-                    ->close(),
-
-                Action::make('cancel_small')
-                    ->label('لا، شكراً')
-                    ->button()
-                    ->color('gray')
                     ->close(),
             ])
             ->persistent()

@@ -2,9 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Enums\CardStatusEnum;
+use App\Enums\WorkStatusEnum;
 use App\Models\Card;
-use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -19,6 +21,10 @@ class DatabaseSeeder extends Seeder
             'email' => 'admin@admin.com',
         ]);
 
-        Card::factory(10)->create();
+        Card::factory()->create([
+            'name' => 'Test Card',
+            'status' => WorkStatusEnum::BOOKED,
+            'matching_state' => CardStatusEnum::NEW_CARD,
+        ]);
     }
 }

@@ -85,6 +85,10 @@ class CardResource extends Resource
                                     ->label('رقم الحساب')
                                     ->required(),
 
+                                TextInput::make('contact_phone')
+                                    ->label('رقم التواصل')
+                                    ->required(),
+
                             ]),
 
                     ]),
@@ -92,8 +96,7 @@ class CardResource extends Resource
                 Section::make('ملاحظات إضافية')
                     ->schema([
                         Textarea::make('notes')
-                            ->label('ملاحظات')
-                            ->required(),
+                            ->label('ملاحظات'),
                     ]),
             ]);
     }
@@ -153,7 +156,7 @@ class CardResource extends Resource
                         Select::make('status')
                             ->label('الحالة')
                             ->options(WorkStatusEnum::class)
-                            ->required()
+                            ->required(),
                     ])
                     ->action(function (Card $record, array $data): void {
                         $record->update([
@@ -169,7 +172,7 @@ class CardResource extends Resource
                         Select::make('matching_state')
                             ->label('التصنيف')
                             ->options(CardStatusEnum::class)
-                            ->required()
+                            ->required(),
                     ])
                     ->action(function (Card $record, array $data): void {
                         $record->update([

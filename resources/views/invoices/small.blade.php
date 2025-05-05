@@ -2,68 +2,85 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>إيصال - {{ $card->id }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body {
-             font-family: 'Cairo', 'Courier New', monospace, sans-serif; /* Prioritize readable Arabic font */
-             line-height: 1.4;
+        @page {
+            size: 60mm 90mm;
+            margin: 0;
+        }
+        html, body {
+            width: 60mm;
+            max-width: 60mm;
+            height: 90mm;
+            max-height: 90mm;
+            margin: 0;
+            padding: 2mm;
+            font-family: 'Cairo', 'Courier New', monospace, sans-serif;
+            line-height: 1.4;
+            font-size: 9px;
+        }
+        div, p, span, strong {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            margin-bottom: 1mm;
+        }
+        .divider {
+            border-top: 1px dashed #000;
+            margin: 1.5mm 0;
         }
         @media print {
-             /* Minimal print overrides */
-             body {
-                 -webkit-print-color-adjust: exact;
-                 print-color-adjust: exact;
-                 width: 72mm; /* Force width on print if @page doesn't work reliably */
-                 min-width: 72mm !important;
-                 padding: 3mm;
-                 margin: 0;
-             }
-             /* Ensure content doesn't overflow */
-             div, p, span, strong {
-                 word-wrap: break-word;
-                 overflow-wrap: break-word;
-             }
+            html, body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                width: 60mm !important;
+                height: 90mm !important;
+                margin: 0 !important;
+                padding: 2mm !important;
+            }
+            .no-print {
+                display: none !important;
+            }
         }
     </style>
 </head>
-{{-- Using text-xs for smaller font size suitable for thermal printers --}}
-<body class="text-xs bg-white text-black p-2 print:p-0">
-    <div class="text-center mb-2">
-        <h2 class="font-bold text-sm">المتوسط جروب</h2>
-        <p class="text-xs">ALMOTAWASSET GROUP</p>
-        <p class="text-xs mt-1">إيصال بطاقة</p>
+<body>
+    <div style="text-align: center; margin-bottom: 1.5mm;">
+        <h2 style="font-weight: bold; font-size: 11px;">المتوسط جروب</h2>
+        <p>ALMOTAWASSET GROUP</p>
+        <p style="margin-top: 0.5mm;">إيصال بطاقة</p>
     </div>
 
-    <div class="text-xs mb-2">
+    <div style="margin-bottom: 1.5mm;">
         <p><strong>التاريخ:</strong> {{ now()->format('Y-m-d') }}</p>
         <p><strong>الوقت:</strong> {{ now()->format('H:i') }}</p>
     </div>
 
-    <hr class="border-t border-dashed border-black my-2">
+    <div class="divider"></div>
 
-    <div class="text-xs space-y-1">
-        {{-- Using simple paragraphs, adjust spacing/layout as needed --}}
-        <p><strong class="mr-2">الاسم:</strong>{{ $card->name }}</p>
-        <p><strong class="mr-2">رقم البطاقة:</strong>{{ $card->card_number }}</p>
-        <p><strong class="mr-2">الرقم الوطني:</strong>{{ $card->national_id }}</p>
-        <p><strong class="mr-2">الهاتف:</strong>{{ $card->phone }}</p>
-         {{-- Add other essential details if needed --}}
+    <div style="margin-bottom: 1.5mm;">
+        <p><strong style="margin-left: 1mm;">الاسم:</strong>{{ $card->name }}</p>
+        <p><strong style="margin-left: 1mm;">الرقم السري للبطاقة:</strong>{{ $card->pin }}</p>
+        <p><strong style="margin-left: 1mm;">الرقم الوطني:</strong>{{ $card->national_id }}</p>
+        <p><strong style="margin-left: 1mm;">رقم الحساب:</strong>{{ $card->account_number }}</p>
+        <p><strong style="margin-left: 1mm;">الهاتف:</strong>{{ $card->phone }}</p>
     </div>
 
-    <hr class="border-t border-dashed border-black my-2">
+    <div class="divider"></div>
 
-    <div class="text-center text-xs mt-2">
-        <p>شكراً لك!</p>
+    <div style="text-align: center; margin-top: 1.5mm;">
+        <p>الموضف المدخل : </p>
+        <div>
+            {{auth()->user()->name}}
+        </div>
     </div>
 
-    {{-- Auto-print script --}}
-    <script class="print:hidden">
+    <script class="no-print">
         window.onload = function() {
             window.print();
-            // setTimeout(function() { window.close(); }, 500);
         }
     </script>
 </body>
-</html> 
+</html>

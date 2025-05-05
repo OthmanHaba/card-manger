@@ -89,28 +89,28 @@ class ActivityLogResource extends Resource
                                         return trans($description);
                                     }),
 
-                                Placeholder::make('subject')
-                                    ->label('العنصر المتأثر')
-                                    ->content(function (Activity $record) {
-                                        if (! $record->subject) {
-                                            return trans('غير متوفر');
-                                        }
-
-                                        $subject = $record->subject_type;
-                                        if (method_exists($record->subject, 'getActivitySubjectDescription')) {
-                                            return trans($record->subject->getActivitySubjectDescription());
-                                        }
-
-                                        // Try to find a name or title attribute
-                                        $nameAttributes = ['name', 'title', 'label', 'id'];
-                                        foreach ($nameAttributes as $attr) {
-                                            if (isset($record->subject->$attr)) {
-                                                return trans_choice('{0} '.$subject.': {1}', 1, [trans($record->subject->$attr)]);
-                                            }
-                                        }
-
-                                        return trans_choice('{0} '.$subject.' #{1}', 1, [$record->subject_id]);
-                                    }),
+                                //                                Placeholder::make('subject')
+                                //                                    ->label('العنصر المتأثر')
+                                //                                    ->content(function (Activity $record) {
+                                //                                        if (! $record->subject) {
+                                //                                            return trans('غير متوفر');
+                                //                                        }
+                                //
+                                //                                        $subject = $record->subject_type;
+                                //                                        if (method_exists($record->subject, 'getActivitySubjectDescription')) {
+                                //                                            return trans($record->subject->getActivitySubjectDescription());
+                                //                                        }
+                                //
+                                //                                        // Try to find a name or title attribute
+                                //                                        $nameAttributes = ['name', 'title', 'label', 'id'];
+                                //                                        foreach ($nameAttributes as $attr) {
+                                //                                            if (isset($record->subject->$attr)) {
+                                //                                                return trans_choice('{0} '.$subject.': {1}', 1, [trans($record->subject->$attr)]);
+                                //                                            }
+                                //                                        }
+                                //
+                                //                                        return trans_choice('{0} '.$subject.' #{1}', 1, [$record->subject_id]);
+                                //                                    }),
 
                                 Placeholder::make('causer')
                                     ->label('المستخدم')
@@ -273,9 +273,9 @@ class ActivityLogResource extends Resource
                                 $oldValue = $old['status'] ?? 'غير محدد';
                                 $newValue = $new['status'];
                                 $changes[] = "<div class='py-1'>
-                                    <span class='font-medium'>".trans('حالة العمل').":</span> 
-                                    <span class='text-red-500 dark:text-red-400'>".trans($oldValue)."</span> 
-                                    <span class='mx-1'>→</span> 
+                                    <span class='font-medium'>".trans('حالة العمل').":</span>
+                                    <span class='text-red-500 dark:text-red-400'>".trans($oldValue)."</span>
+                                    <span class='mx-1'>→</span>
                                     <span class='text-green-500 dark:text-green-400'>".trans($newValue).'</span>
                                 </div>';
                             }
@@ -285,9 +285,9 @@ class ActivityLogResource extends Resource
                                 $oldValue = $old['matching_state'] ?? 'غير محدد';
                                 $newValue = $new['matching_state'];
                                 $changes[] = "<div class='py-1'>
-                                    <span class='font-medium'>".trans('حالة المطابقة').":</span> 
-                                    <span class='text-red-500 dark:text-red-400'>".trans($oldValue)."</span> 
-                                    <span class='mx-1'>→</span> 
+                                    <span class='font-medium'>".trans('حالة المطابقة').":</span>
+                                    <span class='text-red-500 dark:text-red-400'>".trans($oldValue)."</span>
+                                    <span class='mx-1'>→</span>
                                     <span class='text-green-500 dark:text-green-400'>".trans($newValue).'</span>
                                 </div>';
                             }

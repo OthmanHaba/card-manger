@@ -17,8 +17,9 @@ return new class extends Migration
             $table->string('pin');
             $table->string('status');
             $table->string('matching_state');
-            $table->text('notes');
+            $table->text('notes')->nullable();
             $table->decimal('purchase_price', 10, 2)->nullable();
+            $table->string('contact_phone');
             $table->string('account_number');
             $table->timestamps();
         });

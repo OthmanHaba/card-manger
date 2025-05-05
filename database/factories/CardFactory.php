@@ -29,6 +29,7 @@ class CardFactory extends Factory
             'notes' => $this->faker->word(),
             'purchase_price' => $this->faker->randomFloat(2, 10, 100),
             'account_number' => $this->faker->word(),
+            'contact_phone' => $this->faker->phoneNumber
         ];
     }
 }
