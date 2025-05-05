@@ -10,6 +10,7 @@ use Filament\Support\Contracts\HasLabel;
 enum WorkStatusEnum: string implements HasColor, HasLabel
 {
     use Enummable;
+    case NEW = 'new';
     case BOOKED = 'booked';
     case DEPOSITED = 'deposited';
     case COMPLETED = 'completed';
@@ -20,6 +21,7 @@ enum WorkStatusEnum: string implements HasColor, HasLabel
             self::BOOKED => 'تم الحجز',
             self::DEPOSITED => 'تم الإيداع',
             self::COMPLETED => 'تم الانتهاء',
+            self::NEW => 'جديدة',
         };
     }
 
@@ -29,6 +31,7 @@ enum WorkStatusEnum: string implements HasColor, HasLabel
             self::BOOKED => Color::Green,
             self::DEPOSITED => Color::Yellow,
             self::COMPLETED => Color::Blue,
+            self::NEW => Color::Gray,
         };
     }
 }

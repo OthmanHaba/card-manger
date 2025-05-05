@@ -179,6 +179,17 @@ class CardResource extends Resource
                             'matching_state' => $data['matching_state'],
                         ]);
                     }),
+
+                Action::make('changeMatchingState')
+                    ->label('طباعة صغيرة')
+                    ->icon('heroicon-o-printer')
+                    ->url(fn(Card $record) => route('print.small.invoice', $record)),
+
+                Action::make('changeMatchingState')
+                    ->label('طباعة فاتورة كبيرة')
+                    ->icon('heroicon-o-printer')
+                    ->url(fn(Card $record) => route('print.full.invoice', $record)),
+
                 DeleteAction::make(),
             ])
             ->bulkActions([
